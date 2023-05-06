@@ -6,8 +6,15 @@ DIST_MAX = 10**9
 
 
 def held_karp(graph: np.array):
+    '''
+    Bellman-Held-Karp algorithm (dynamic programming approach)
+
+    Time complexity: O(n^2 * 2^n)
+    Memory consumption: O(n * 2^n)
+    '''
     n = graph.shape[0]
-    dp = np.full((n, 1 << (n-1)), DIST_MAX, dtype=np.int32)
+    assert n < 25, 'Algorithm would occupy more that 2GB of RAM'
+    dp = np.full((n-1, 1 << (n-1)), DIST_MAX, dtype=np.int32)
     prev = np.zeros((n-1, 1 << (n-1)), dtype=np.uint8)
     for v in range(n-1):
         dp[v, 1 << v] = graph[n-1, v]

@@ -2,20 +2,27 @@ import numpy as np
 
 DIST_MAX = 10**9
 
-# сложность алгоритма без 2-opt (https://en.wikipedia.org/wiki/2-opt) -
-# O(n^2), с 2-opt - O(n^3)
-# за секунду отрабатывает: 0 => n=2000, 10 => n=600
-TWO_OPT_ITERS_MAX = 10
 
-def faster_christofides(graph: np.array):
-    return Christofides(graph).find_path()
+def faster_christofides(graph: np.array, two_opt_iters_max=10):
+    '''
+    Faster christofides (with approximate minimum-weight perfect matching)
+
+    Complexity: (without 2-opt https://en.wikipedia.org/wiki/2-opt) - O(n^2),
+    single 2-opt iteration - O(n^2) ... O(n^3);
+
+    to fit in 1 second:
+    two_opt_iters_max=0 => n < 2000, 10 => n < 500
+    '''
+    return Christofides(graph, two_opt_iters_max).find_path()
+
 
 class Christofides:
-    def __init__(self, graph: np.array):
+    def __init__(self, graph: np.array, two_opt_iters_max: int):
         self.n = graph.shape[0]
         self.odds = []
         self.adjlist = [[] for _ in range(self.n)]
         self.graph = np.array(graph, dtype=np.int32)
+        self.two_opt_iters_max = two_opt_iters_max
 
     def find_mst(self):
         key = [DIST_MAX] * self.n
@@ -102,7 +109,7 @@ class Christofides:
         path = self.find_euler_cycle(start_pos)
         path, length = self.make_hamilton_cycle(path)
 
-        for _ in range(TWO_OPT_ITERS_MAX):
+        for _ in range(self.two_opt_iters_max):
             length_prev = length
             for i in range(1, self.n-3):
                 for j in range(i+2, self.n-1):
