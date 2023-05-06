@@ -3,23 +3,22 @@ import numpy as np
 
 
 def gen_vertex(sets_num: int):
-    return b''.join(map(lambda _: random.choice([b'0', b'1']), range(sets_num)))
+    # vertex is bitset
+    return random.randint(0, 2**sets_num - 1)
 
 
-def hamming_distance(v1: bytes, v2: bytes):
-    assert (len(v1) == len(v2))
-    t = 0
-    for (x, y) in zip(v1, v2):
-        if x != y:
-            t += 1
-    return t
+def hamming_distance(v1: int, v2: int):
+    try:
+        return (v1 ^ v2).bit_count()
+    except AttributeError:
+        return bin(v1 ^ v2).count('1')
 
 
 def gen_graph(sets_num: int, elems_num: int):
     # предполагается, что алгоритмы не вставляют виртуальную вершину
     # самостоятельно и просто ищут замкнутый путь 
     vertices = [gen_vertex(sets_num) for _ in range(elems_num)]
-    graph = np.zeros((elems_num, elems_num), dtype=np.uint64)
+    graph = np.zeros((elems_num, elems_num), dtype=np.int32)
     for i in range(elems_num):
         for j in range(elems_num):
             graph[i, j] = hamming_distance(vertices[i], vertices[j])
