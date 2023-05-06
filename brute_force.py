@@ -1,6 +1,7 @@
 from itertools import permutations
 import numpy as np
-from time import perf_counter
+
+DIST_MAX = 10**9
 
 
 def brute_force_recursive(graph: np.array):
@@ -34,7 +35,7 @@ def brute_force_recursive(graph: np.array):
 
 def brute_force_permutative(graph: np.array):
     n = graph.shape[0]
-    len_best = 10**9
+    len_best = DIST_MAX
     path_best = None
     for perm in permutations(range(n-1)):
         len_curr = graph[perm[n-2], n-1] + graph[n-1, perm[0]]
@@ -44,21 +45,3 @@ def brute_force_permutative(graph: np.array):
             len_best = len_curr
             path_best = [*perm, n-1]
     return len_best, path_best
-
-
-if __name__ == '__main__':
-    # from gen_graph import gen_graph
-    # graph = gen_graph(3, 11)
-    graph = np.loadtxt('graph.txt')
-
-    t1 = perf_counter()
-    a = brute_force_permutative(graph)
-    t2 = perf_counter()
-    print(t2-t1)
-    print(a)
-
-    t1 = perf_counter()
-    b = brute_force_recursive(graph)
-    t2 = perf_counter()
-    print(t2-t1)
-    print(b)

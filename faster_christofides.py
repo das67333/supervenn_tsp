@@ -7,13 +7,15 @@ DIST_MAX = 10**9
 # за секунду отрабатывает: 0 => n=2000, 10 => n=600
 TWO_OPT_ITERS_MAX = 10
 
+def faster_christofides(graph: np.array):
+    return Christofides(graph).find_path()
 
 class Christofides:
     def __init__(self, graph: np.array):
         self.n = graph.shape[0]
         self.odds = []
         self.adjlist = [[] for _ in range(self.n)]
-        self.graph = np.array(graph, dtype=np.int64)
+        self.graph = np.array(graph, dtype=np.int32)
 
     def find_mst(self):
         key = [DIST_MAX] * self.n
@@ -90,18 +92,6 @@ class Christofides:
         length += self.graph[path[curr], path[root]]
         return path, length
 
-    def two_opt(self, path: list[int], length: int):
-        for i in range(1, self.n-3):
-            for j in range(i+2, self.n-1):
-                delta = self.graph[path[i-1], path[j-1]] + \
-                    self.graph[path[i], path[j]] - \
-                    self.graph[path[i-1], path[i]] - \
-                    self.graph[path[j-1], path[j]]
-                if delta < 0:
-                    length += delta
-                    path[i:j] = path[j-1:i-1:-1]
-        return path, length
-
     def find_path(self):
         self.find_mst()
         self.perfect_matching()
@@ -112,12 +102,20 @@ class Christofides:
         path = self.find_euler_cycle(start_pos)
         path, length = self.make_hamilton_cycle(path)
 
-        length_prev = DIST_MAX
-        iters_left = TWO_OPT_ITERS_MAX
-        while length < length_prev and iters_left > 0:
+        for _ in range(TWO_OPT_ITERS_MAX):
             length_prev = length
-            path, length = self.two_opt(path, length)
-            iters_left -= 1
+            for i in range(1, self.n-3):
+                for j in range(i+2, self.n-1):
+                    delta = self.graph[path[i-1], path[j-1]] + \
+                        self.graph[path[i], path[j]] - \
+                        self.graph[path[i-1], path[i]] - \
+                        self.graph[path[j-1], path[j]]
+                    if delta < 0:
+                        length += delta
+                        path[i:j] = path[j-1:i-1:-1]
+            if length == length_prev:
+                break
+
         return length, path
 
 
@@ -126,19 +124,19 @@ if __name__ == '__main__':
     from held_karp import *
     from gen_graph import *
 
-    # Сравнение с точным решением
-    graph = gen_graph(sets_num=300, elems_num=16)
+    graph = gen_graph(16)
 
     t1 = perf_counter()
-    a = Christofides(graph).find_path()
+    a = faster_christofides(graph)
     t2 = perf_counter()
     assert a[0] == calc_len(graph, a[1])
     print(f'Christofides (approximate)\n'
-          f'Duration:\t{t2-t1:.6f} sec\tLength:\t{a[0]}')
+          f'Duration:\t{t2-t1:.6f} sec\tLength:\t{a[0]}\n')
 
+    # Сравнение с точным решением
     t1 = perf_counter()
     b = held_karp(graph)
     t2 = perf_counter()
     assert b[0] == calc_len(graph, b[1])
     print(f'Held-Karp (precise)\n'
-          f'Duration:\t{t2-t1:.6f} sec\tLength:\t{b[0]}')
+          f'Duration:\t{t2-t1:.6f} sec\tLength:\t{b[0]}\n')

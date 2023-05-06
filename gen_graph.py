@@ -14,7 +14,7 @@ def hamming_distance(v1: int, v2: int):
         return bin(v1 ^ v2).count('1')
 
 
-def gen_graph(sets_num: int, elems_num: int):
+def gen_graph(elems_num: int, sets_num = 300):
     # предполагается, что алгоритмы не вставляют виртуальную вершину
     # самостоятельно и просто ищут замкнутый путь 
     vertices = [gen_vertex(sets_num) for _ in range(elems_num)]
