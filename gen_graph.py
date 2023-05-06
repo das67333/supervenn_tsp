@@ -3,10 +3,10 @@ import numpy as np
 
 
 def gen_vertex(sets_num: int):
-    return ''.join(map(lambda _: random.choice(['0', '1']), range(sets_num)))
+    return b''.join(map(lambda _: random.choice([b'0', b'1']), range(sets_num)))
 
 
-def hamming_distance(v1: str, v2: str):
+def hamming_distance(v1: bytes, v2: bytes):
     assert (len(v1) == len(v2))
     t = 0
     for (x, y) in zip(v1, v2):
