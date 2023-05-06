@@ -126,8 +126,8 @@ if __name__ == '__main__':
     from held_karp import *
     from gen_graph import *
 
-    # graph = np.loadtxt('graph.txt')
-    graph = gen_graph(sets_num=300, elems_num=600)
+    # Сравнение с точным решением
+    graph = gen_graph(sets_num=300, elems_num=16)
 
     t1 = perf_counter()
     a = Christofides(graph).find_path()
@@ -136,9 +136,9 @@ if __name__ == '__main__':
     print(f'Christofides (approximate)\n'
           f'Duration:\t{t2-t1:.6f} sec\tLength:\t{a[0]}')
 
-    # t1 = perf_counter()
-    # b = held_karp(graph)
-    # t2 = perf_counter()
-    # assert b[0] == calc_len(graph, b[1])
-    # print(f'Held-Karp (precise)\n'
-    #       f'Duration:\t{t2-t1:.6f} sec\tLength:\t{b[0]}')
+    t1 = perf_counter()
+    b = held_karp(graph)
+    t2 = perf_counter()
+    assert b[0] == calc_len(graph, b[1])
+    print(f'Held-Karp (precise)\n'
+          f'Duration:\t{t2-t1:.6f} sec\tLength:\t{b[0]}')
