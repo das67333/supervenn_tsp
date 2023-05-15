@@ -15,12 +15,12 @@ def hamming_distance(v1: int, v2: int):
 
 
 def gen_graph(elems_num: int, sets_num = 300):
-    # предполагается, что алгоритмы не вставляют виртуальную вершину
-    # самостоятельно и просто ищут замкнутый путь 
-    vertices = [gen_vertex(sets_num) for _ in range(elems_num)]
+    # уже содержит виртуальную вершину-разделитель среди elems_num
+    vertices = [gen_vertex(sets_num) for _ in range(elems_num - 1)]
     graph = np.zeros((elems_num, elems_num), dtype=np.int32)
-    for i in range(elems_num):
-        for j in range(elems_num):
+    # вершина (elems_num-1) - разделитель
+    for i in range(elems_num - 1):
+        for j in range(elems_num - 1):
             graph[i, j] = hamming_distance(vertices[i], vertices[j])
     return graph
 
