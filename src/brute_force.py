@@ -23,7 +23,7 @@ def brute_force_recursive(graph: np.array):
             visited[j] = False
 
     n = graph.shape[0]
-    len_best = np.inf
+    len_best = DIST_MAX
     path_curr = [0]
     path_best = None
     visited = [False] * n
