@@ -11,7 +11,7 @@ src/brute_force.py - наивный алгоритм через рекурсию
 
 src/held_karp.py - точное решение через динамическое программирование
 
-src/held_karp_cython.pyx - работает в >30 раз быстрее, перед запуском компилируется через
+src/held_karp_cython.pyx - аналогично, но работает в >30 раз быстрее. Требует компиляции:
   - `cd src && python setup.py build_ext --inplace`
 
 src/faster_christofides.py - приближенный и более быстрый алгоритм Кристофидеса
@@ -19,19 +19,10 @@ src/faster_christofides.py - приближенный и более быстры
  опционально можно подключить/отключить 2-opt
  (https://en.wikipedia.org/wiki/2-opt)
 
+src/faster_christofides.pyx - аналогично
+
 
 ### Что можно успеть за секунду
 
-brute_force_permutative => n=10
-
-brute_force_recursive => n=10
-
-held_karp => n=16
-
-held_karp_cython => n=20
-
-faster_christofides => n=2000
-
-faster_christofides + 2-opt => n=600
-
-![alt text](https://github.com/das67333/supervenn_tsp/blob/main/plot.png)
+![alt text](https://github.com/das67333/supervenn_tsp/blob/main/x100_precise.png)
+![alt text](https://github.com/das67333/supervenn_tsp/blob/main/x100_approximate.png)

@@ -3,7 +3,7 @@ import numpy as np
 DIST_MAX = 10**9
 
 
-def faster_christofides(graph: np.array, two_opt_iters_max=10):
+def faster_christofides_cython(graph: np.array, two_opt_iters_max=10):
     '''
     Faster christofides (with approximate minimum-weight perfect matching)
 
@@ -96,21 +96,25 @@ class Christofides:
         length += self.graph[path[curr], path[root]]
         return path, length
 
-    def two_opt(self, path: list, length: int):
+    def two_opt(self, path: list, int length):
+        cdef int[:, :] graph_view = self.graph
+        path_np = np.array(path, dtype=np.int32)
+        cdef int[:] path_view = path_np
+        cdef int _, i, j, length_prev, delta
         for _ in range(self.two_opt_iters_max):
             length_prev = length
             for i in range(1, self.n-3):
                 for j in range(i+2, self.n-1):
-                    delta = self.graph[path[i-1], path[j-1]] + \
-                        self.graph[path[i], path[j]] - \
-                        self.graph[path[i-1], path[i]] - \
-                        self.graph[path[j-1], path[j]]
+                    delta = graph_view[path_view[i-1], path_view[j-1]] + \
+                        graph_view[path_view[i], path_view[j]] - \
+                        graph_view[path_view[i-1], path_view[i]] - \
+                        graph_view[path_view[j-1], path_view[j]]
                     if delta < 0:
                         length += delta
-                        path[i:j] = path[j-1:i-1:-1]
+                        path_view[i:j] = path_view[j-1:i-1:-1]
             if length == length_prev:
                 break
-        return path, length
+        return list(path_np), int(length)
 
     def find_path(self):
         self.find_mst()
