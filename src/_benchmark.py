@@ -1,45 +1,50 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from time import perf_counter
 import random
 
-from gen_graph import gen_graph, calc_len
-from faster_christofides_cython import faster_christofides_cython, get_timer
+from gen_graph import gen_graph
+from held_karp_cython import held_karp_cython
+from faster_christofides_cython import faster_christofides_cython
 
 random.seed(42)
 
-funcs = [faster_christofides_cython]
-n_limits = [2000]
-n_start, n_step, repetitions = 5, 50, 100
-plt.title('Faster-Christofides')
-# plt.yscale('log')
+n_start, n_step, repetitions = 5, 1, 1000
+plt.title('Heuristics quality')
+plt.xlabel('number of vertices (including separator vertex)')
+plt.ylabel('path length divided by optimal,\n average of 1000 repetitions')
+plt.ylim((1.0, 1.1))
+plt.grid(True)
 
-for func, n_limit in zip(funcs, n_limits):
+def two_opt(graph):
+    return faster_christofides_cython(graph, 0)
+
+two_opt.__name__ = 'random path + two_opt'
+
+for func, n_limit in ((two_opt, 18), ):
     x, y = [], []
 
-    for n in range(n_start, n_limit + n_step + 1, n_step): # (2_000, ):
-        timer_total = 0.0
-
+    for n in range(n_start, n_limit + n_step, n_step):
+        ratio_sum = 0
         for _ in range(repetitions):
             graph = gen_graph(n)
 
-            t1 = perf_counter()
-            path, length = func(graph)
-            t2 = perf_counter()
-            timer_total += t2 - t1
+            length_best = held_karp_cython(graph)[1]
+            length = func(graph)[1]
+            assert length >= length_best
+            ratio_sum += length / length_best
 
         x.append(n)
-        y.append(timer_total / repetitions)
+        y.append(ratio_sum / repetitions)
         print(f'{n=}')
-        print(timer_total / repetitions)
-        print(get_timer() / repetitions)
 
     plt.plot(x, y, label=func.__name__)
 
-    print(length, calc_len(graph, path), path)
     # сохраняем на будущее
-    with open('graphs_data.txt', mode='a') as file:
-        file.write(f'{func.__name__}:\n{x}\n{y}\n\n')
+    with open('lengths_comparison.txt', mode='a') as file:
+        file.write(f'(\n'
+                   f'\'{func.__name__}\',\n'
+                   f'{x},\n'
+                   f'{y}\n'
+                   f')\n\n')
 
 plt.legend()
 plt.show()
