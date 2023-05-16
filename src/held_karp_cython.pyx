@@ -1,5 +1,5 @@
-from itertools import combinations
 import numpy as np
+from itertools import combinations
 cimport cython
 
 DIST_MAX = 10**9

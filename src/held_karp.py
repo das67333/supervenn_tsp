@@ -1,5 +1,4 @@
 import numpy as np
-from time import perf_counter
 from itertools import combinations
 
 DIST_MAX = 10**9
@@ -44,31 +43,3 @@ def held_karp(graph: np.array):
         s_last ^= 1 << v_last
         v_last = prev[v_last, s_last ^ (1 << v_last)]
     return path_best, len_best
-
-
-if __name__ == '__main__':
-    from brute_force import *
-    from gen_graph import *
-
-    graph = gen_graph(10)
-
-    t1 = perf_counter()
-    a = brute_force_recursive(graph)
-    t2 = perf_counter()
-    assert a[0] == calc_len(graph, a[1])
-    print(f'Brute force recursive (precise)\n'
-          f'Duration:\t{t2-t1:.6f} sec\tLength:\t{a[0]}\n')
-
-    t1 = perf_counter()
-    a = brute_force_permutative(graph)
-    t2 = perf_counter()
-    assert a[0] == calc_len(graph, a[1])
-    print(f'Brute force permutative (precise)\n'
-          f'Duration:\t{t2-t1:.6f} sec\tLength:\t{a[0]}\n')
-
-    t1 = perf_counter()
-    b = held_karp(graph)
-    t2 = perf_counter()
-    assert b[0] == calc_len(graph, b[1])
-    print(f'Held-Karp (precise)\n'
-          f'Duration:\t{t2-t1:.6f} sec\tLength:\t{b[0]}\n')
