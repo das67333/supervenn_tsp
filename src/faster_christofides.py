@@ -123,27 +123,4 @@ class Christofides:
             if length == length_prev:
                 break
 
-        return length, path
-
-
-if __name__ == '__main__':
-    from brute_force import *
-    from held_karp import *
-    from gen_graph import *
-
-    graph = gen_graph(16)
-
-    t1 = perf_counter()
-    a = faster_christofides(graph)
-    t2 = perf_counter()
-    assert a[0] == calc_len(graph, a[1])
-    print(f'Christofides (approximate)\n'
-          f'Duration:\t{t2-t1:.6f} sec\tLength:\t{a[0]}\n')
-
-    # Сравнение с точным решением
-    t1 = perf_counter()
-    b = held_karp(graph)
-    t2 = perf_counter()
-    assert b[0] == calc_len(graph, b[1])
-    print(f'Held-Karp (precise)\n'
-          f'Duration:\t{t2-t1:.6f} sec\tLength:\t{b[0]}\n')
+        return path, length

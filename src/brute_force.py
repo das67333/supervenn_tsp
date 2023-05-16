@@ -30,7 +30,7 @@ def brute_force_recursive(graph: np.array):
     visited[0] = True
     inner(0, visited, 0, path_curr)
     assert path_best is not None
-    return len_best, path_best
+    return path_best, len_best
 
 
 def brute_force_permutative(graph: np.array):
@@ -44,4 +44,4 @@ def brute_force_permutative(graph: np.array):
         if len_best > len_curr:
             len_best = len_curr
             path_best = [*perm, n-1]
-    return len_best, path_best
+    return path_best, len_best

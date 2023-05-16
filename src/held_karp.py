@@ -43,7 +43,7 @@ def held_karp(graph: np.array):
         path_best.append(v_last)
         s_last ^= 1 << v_last
         v_last = prev[v_last, s_last ^ (1 << v_last)]
-    return len_best, path_best
+    return path_best, len_best
 
 
 if __name__ == '__main__':

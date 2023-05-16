@@ -50,4 +50,4 @@ def held_karp_cython(int[:, ::1] graph):
         path_best.append(v_last)
         s_last ^= 1 << v_last
         v_last = prev[v_last, s_last ^ (1 << v_last)]
-    return int(len_best), path_best
+    return path_best, int(len_best)
