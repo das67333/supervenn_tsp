@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import random
 import numpy as np
+from time import perf_counter
 
 from gen_graph import gen_graph, calc_len
 from faster_christofides_cython import faster_christofides_cython
@@ -68,14 +69,6 @@ for func in (func1, func2, func3):
         y.append(np.percentile(ratios, 50))
 
     plt.plot(x, y, label=func.__name__)
-
-    # сохраняем на будущее
-    # with open('lengths_comparison.txt', mode='a') as file:
-    #     file.write(f'(\n'
-    #                f'\'{func.__name__}\',\n'
-    #                f'{x},\n'
-    #                f'{y}\n'
-    #                f'),\n\n')
 
 plt.legend()
 plt.show()

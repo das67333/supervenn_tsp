@@ -1,4 +1,5 @@
 import numpy as np
+cimport cython
 
 DIST_MAX = 10**9
 
@@ -21,25 +22,32 @@ class Christofides:
         self.graph = np.array(graph, dtype=np.int32)
         self.two_opt_iters_max = two_opt_iters_max
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     def find_mst(self):
-        key = [DIST_MAX] * self.n
-        parent = [0] * self.n
-        in_mst = [False] * self.n
+        # prim's algorithm
+        cdef int n = self.n
+        cdef int[:, :] graph_view = self.graph
+        key = np.full(n, DIST_MAX, dtype=np.int32)
+        cdef int[:] key_view = key
+        parent = np.zeros(n, dtype=np.int32)
+        cdef int[:] parent_view = parent
+        in_mst = np.zeros(n, dtype=np.uint8)
+        cdef unsigned char[:] in_mst_view = in_mst
         key[0] = 0
         parent[0] = -1
-        for i in range(self.n-1):
+        cdef int i, j, key_min, v, u
+        for i in range(n-1):
             key_min, v = DIST_MAX, 0
-            for j in range(self.n):
-                if not in_mst[j] and key[j] < key_min:
-                    key_min, v = key[j], j
-
-            in_mst[v] = True
-            for u in range(self.n):
-                if self.graph[v, u] and not in_mst[u] and self.graph[v, u] < key[u]:
-                    parent[u] = v
-                    key[u] = self.graph[v, u]
-
-        for v1 in range(self.n):
+            for j in range(n):
+                if not in_mst_view[j] and key_view[j] < key_min:
+                    key_min, v = key_view[j], j
+            in_mst_view[v] = 1 # True
+            for u in range(n):
+                if graph_view[v, u] and in_mst_view[u] == 0 and graph_view[v, u] < key_view[u]:
+                    parent_view[u] = v
+                    key_view[u] = graph_view[v, u]
+        for v1 in range(n):
             v2 = parent[v1]
             if v2 != -1:
                 self.adjlist[v1].append(v2)
@@ -96,6 +104,8 @@ class Christofides:
         length += self.graph[path[curr], path[root]]
         return path, length
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     def two_opt(self, path: list, int length):
         cdef int[:, :] graph_view = self.graph
         path_np = np.array(path, dtype=np.int32)

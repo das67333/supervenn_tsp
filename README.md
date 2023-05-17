@@ -26,8 +26,8 @@ src/unit_tests.py - юнит тесты на адекватность резул
 
 ### Что можно успеть за секунду
 
-![alt text](https://github.com/das67333/supervenn_tsp/blob/main/plots/x100_precise.png)
-![alt text](https://github.com/das67333/supervenn_tsp/blob/main/plots/x100_approximate.png)
+![alt text](https://github.com/das67333/supervenn_tsp/blob/main/plots/x100_performance_precise.png)
+![alt text](https://github.com/das67333/supervenn_tsp/blob/main/plots/x100_performance_approximate.png)
 
 
 ### Близость к оптимальному решению

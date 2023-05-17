@@ -22,6 +22,7 @@ class Christofides:
         self.two_opt_iters_max = two_opt_iters_max
 
     def find_mst(self):
+        # prim's algorithm
         key = [DIST_MAX] * self.n
         parent = [0] * self.n
         in_mst = [False] * self.n
