@@ -13,6 +13,17 @@ def faster_christofides(graph: np.array, two_opt_iters_max=10):
     return Christofides(graph, two_opt_iters_max).find_path()
 
 
+def faster_multichristofides(graph: np.array, two_opt_iters_max=10):
+    '''
+    Faster christofides (with approximate minimum-weight perfect matching)
+    which runs n times and chooses the shortest path found
+
+    Complexity: (without 2-opt https://en.wikipedia.org/wiki/2-opt) - O(n^2),
+    single 2-opt iteration - O(n^2) ... O(n^3);
+    '''
+    return Christofides(graph, two_opt_iters_max).find_path(multi=True)
+
+
 class Christofides:
     def __init__(self, graph: np.array, two_opt_iters_max: int):
         self.n = graph.shape[0]
@@ -63,7 +74,7 @@ class Christofides:
             self.odds.remove(closest)
 
     def find_euler_cycle(self, pos: int):
-        adjlist = self.adjlist[:]
+        adjlist = [x[:] for x in self.adjlist]
         path, stk = [], []
         stk = []
         while stk or adjlist[pos]:
@@ -94,7 +105,7 @@ class Christofides:
                 visited[path[next]] = True
                 curr, next = next, next + 1
 
-        length += self.graph[path[curr], path[root]]
+        length += self.graph[path[curr], root]
         return path, length
 
     def two_opt(self, path: list, length: int):
@@ -113,15 +124,19 @@ class Christofides:
                 break
         return path, length
 
-    def find_path(self):
+    def find_path(self, multi=False):
         self.find_mst()
         self.perfect_matching()
 
-        # оставшуюся часть функции можно запускать
-        # несколько раз и рандомить стартовую вершину
+        path_best, length_best = None, DIST_MAX
         start_pos = 0
-        path = self.find_euler_cycle(start_pos)
-        path, length = self.make_hamilton_cycle(path)
-
-        path, length = self.two_opt(path, length)
-        return path, length
+        while (not path_best or multi) and start_pos != self.n:
+            path = self.find_euler_cycle(start_pos)
+            path, length = self.make_hamilton_cycle(path)
+            path, length = self.two_opt(path, length)
+            if length_best > length:
+                length_best = length
+                path_best = path[:]
+            start_pos += 1
+        assert path_best
+        return path_best, length_best
