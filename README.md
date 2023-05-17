@@ -32,4 +32,5 @@ src/unit_tests.py - юнит тесты на адекватность резул
 
 ### Близость к оптимальному решению
 
-![alt text](https://github.com/das67333/supervenn_tsp/blob/main/plots/x1000_heuristics_quality.png)
+![alt text](https://github.com/das67333/supervenn_tsp/blob/main/plots/x1000_heuristics_quality_20_50.png)
+![alt text](https://github.com/das67333/supervenn_tsp/blob/main/plots/x1000_heuristics_quality_20_99.png)
