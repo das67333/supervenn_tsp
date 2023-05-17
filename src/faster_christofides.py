@@ -3,6 +3,24 @@ import numpy as np
 DIST_MAX = 10**9
 
 
+def two_opt(graph: np.array, path: list, length: int, two_opt_iters_max: int):
+    n = graph.shape[0]
+    for _ in range(two_opt_iters_max):
+        length_prev = length
+        for i in range(1, n-3):
+            for j in range(i+2, n-1):
+                delta = graph[path[i-1], path[j-1]] + \
+                    graph[path[i], path[j]] - \
+                    graph[path[i-1], path[i]] - \
+                    graph[path[j-1], path[j]]
+                if delta < 0:
+                    length += delta
+                    path[i:j] = path[j-1:i-1:-1]
+        if length == length_prev:
+            break
+    return path, length
+
+
 def faster_christofides(graph: np.array, two_opt_iters_max=10):
     '''
     Faster christofides (with approximate minimum-weight perfect matching)
@@ -10,7 +28,9 @@ def faster_christofides(graph: np.array, two_opt_iters_max=10):
     Complexity: (without 2-opt https://en.wikipedia.org/wiki/2-opt) - O(n^2),
     single 2-opt iteration - O(n^2) ... O(n^3);
     '''
-    return Christofides(graph, two_opt_iters_max).find_path()
+    christ = Christofides(graph)
+    path, length = christ.find_path()
+    return two_opt(graph, path, length, two_opt_iters_max)
 
 
 def faster_multichristofides(graph: np.array, two_opt_iters_max=10):
@@ -21,16 +41,27 @@ def faster_multichristofides(graph: np.array, two_opt_iters_max=10):
     Complexity: (without 2-opt https://en.wikipedia.org/wiki/2-opt) - O(n^2),
     single 2-opt iteration - O(n^2) ... O(n^3);
     '''
-    return Christofides(graph, two_opt_iters_max).find_path(multi=True)
+    path_best, length_best = None, DIST_MAX
+    christ = Christofides(graph)
+    for start_pos in range(graph.shape[0]):
+        path, length = christ.find_path(start_pos)
+        path, length = two_opt(graph, path, length, two_opt_iters_max)
+        if length_best > length:
+            length_best = length
+            path_best = path[:]
+    assert path_best
+    return path_best, length_best
 
 
 class Christofides:
-    def __init__(self, graph: np.array, two_opt_iters_max: int):
+    def __init__(self, graph: np.array):
         self.n = graph.shape[0]
         self.odds = []
         self.adjlist = [[] for _ in range(self.n)]
         self.graph = np.array(graph, dtype=np.int32)
-        self.two_opt_iters_max = two_opt_iters_max
+
+        self.find_mst()
+        self.perfect_matching()
 
     def find_mst(self):
         # prim's algorithm
@@ -108,35 +139,6 @@ class Christofides:
         length += self.graph[path[curr], root]
         return path, length
 
-    def two_opt(self, path: list, length: int):
-        for _ in range(self.two_opt_iters_max):
-            length_prev = length
-            for i in range(1, self.n-3):
-                for j in range(i+2, self.n-1):
-                    delta = self.graph[path[i-1], path[j-1]] + \
-                        self.graph[path[i], path[j]] - \
-                        self.graph[path[i-1], path[i]] - \
-                        self.graph[path[j-1], path[j]]
-                    if delta < 0:
-                        length += delta
-                        path[i:j] = path[j-1:i-1:-1]
-            if length == length_prev:
-                break
-        return path, length
-
-    def find_path(self, multi=False):
-        self.find_mst()
-        self.perfect_matching()
-
-        path_best, length_best = None, DIST_MAX
-        start_pos = 0
-        while (not path_best or multi) and start_pos != self.n:
-            path = self.find_euler_cycle(start_pos)
-            path, length = self.make_hamilton_cycle(path)
-            path, length = self.two_opt(path, length)
-            if length_best > length:
-                length_best = length
-                path_best = path[:]
-            start_pos += 1
-        assert path_best
-        return path_best, length_best
+    def find_path(self, start_pos=0):
+        path = self.find_euler_cycle(start_pos)
+        return self.make_hamilton_cycle(path)

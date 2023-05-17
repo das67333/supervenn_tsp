@@ -4,6 +4,29 @@ cimport cython
 DIST_MAX = 10**9
 
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def two_opt(graph: np.array, path: list, int length, int two_opt_iters_max):
+    cdef int[:, :] graph_view = graph
+    path_np = np.array(path, dtype=np.int32)
+    cdef int[:] path_view = path_np
+    cdef int _, i, j, length_prev, delta, n = graph.shape[0]
+    for _ in range(two_opt_iters_max):
+        length_prev = length
+        for i in range(1, n-3):
+            for j in range(i+2, n-1):
+                delta = graph_view[path_view[i-1], path_view[j-1]] + \
+                    graph_view[path_view[i], path_view[j]] - \
+                    graph_view[path_view[i-1], path_view[i]] - \
+                    graph_view[path_view[j-1], path_view[j]]
+                if delta < 0:
+                    length += delta
+                    path_view[i:j] = path_view[j-1:i-1:-1]
+        if length == length_prev:
+            break
+    return list(path_np), int(length)
+
+
 def faster_christofides_cython(graph: np.array, two_opt_iters_max=10):
     '''
     Faster christofides (with approximate minimum-weight perfect matching)
@@ -11,7 +34,9 @@ def faster_christofides_cython(graph: np.array, two_opt_iters_max=10):
     Complexity: (without 2-opt https://en.wikipedia.org/wiki/2-opt) - O(n^2),
     single 2-opt iteration - O(n^2) ... O(n^3);
     '''
-    return Christofides(graph, two_opt_iters_max).find_path()
+    christ = Christofides(graph)
+    path, length = christ.find_path()
+    return two_opt(graph, path, length, two_opt_iters_max)
 
 
 def faster_multichristofides_cython(graph: np.array, two_opt_iters_max=10):
@@ -22,19 +47,28 @@ def faster_multichristofides_cython(graph: np.array, two_opt_iters_max=10):
     Complexity: (without 2-opt https://en.wikipedia.org/wiki/2-opt) - O(n^2),
     single 2-opt iteration - O(n^2) ... O(n^3);
     '''
-    return Christofides(graph, two_opt_iters_max).find_path(multi=True)
+    path_best, length_best = None, DIST_MAX
+    christ = Christofides(graph)
+    for start_pos in range(graph.shape[0]):
+        path, length = christ.find_path(start_pos)
+        path, length = two_opt(graph, path, length, two_opt_iters_max)
+        if length_best > length:
+            length_best = length
+            path_best = path[:]
+    assert path_best
+    return path_best, length_best
 
 
 class Christofides:
-    def __init__(self, graph: np.array, two_opt_iters_max: int):
+    def __init__(self, graph: np.array):
         self.n = graph.shape[0]
         self.odds = []
         self.adjlist = [[] for _ in range(self.n)]
         self.graph = np.array(graph, dtype=np.int32)
-        self.two_opt_iters_max = two_opt_iters_max
 
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
+        self.find_mst()
+        self.perfect_matching()
+
     def find_mst(self):
         # prim's algorithm
         cdef int n = self.n
@@ -115,41 +149,6 @@ class Christofides:
         length += self.graph[path[curr], root]
         return path, length
 
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    def two_opt(self, path: list, int length):
-        cdef int[:, :] graph_view = self.graph
-        path_np = np.array(path, dtype=np.int32)
-        cdef int[:] path_view = path_np
-        cdef int _, i, j, length_prev, delta
-        for _ in range(self.two_opt_iters_max):
-            length_prev = length
-            for i in range(1, self.n-3):
-                for j in range(i+2, self.n-1):
-                    delta = graph_view[path_view[i-1], path_view[j-1]] + \
-                        graph_view[path_view[i], path_view[j]] - \
-                        graph_view[path_view[i-1], path_view[i]] - \
-                        graph_view[path_view[j-1], path_view[j]]
-                    if delta < 0:
-                        length += delta
-                        path_view[i:j] = path_view[j-1:i-1:-1]
-            if length == length_prev:
-                break
-        return list(path_np), int(length)
-
-    def find_path(self, multi=False):
-        self.find_mst()
-        self.perfect_matching()
-
-        path_best, length_best = None, DIST_MAX
-        start_pos = 0
-        while (not path_best or multi) and start_pos != self.n:
-            path = self.find_euler_cycle(start_pos)
-            path, length = self.make_hamilton_cycle(path)
-            path, length = self.two_opt(path, length)
-            if length_best > length:
-                length_best = length
-                path_best = path[:]
-            start_pos += 1
-        assert path_best
-        return path_best, length_best
+    def find_path(self, start_pos=0):
+        path = self.find_euler_cycle(start_pos)
+        return self.make_hamilton_cycle(path)
