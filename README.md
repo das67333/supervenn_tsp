@@ -19,7 +19,7 @@ src/faster_christofides.py - приближенный и более быстры
  опционально можно подключить/отключить 2-opt
  (https://en.wikipedia.org/wiki/2-opt)
 
-src/faster_christofides.pyx - аналогично
+src/faster_christofides_cython.pyx - аналогично
 
 src/unit_tests.py - юнит тесты на адекватность результатов алгоритмов, верифицируют друг друга
 
